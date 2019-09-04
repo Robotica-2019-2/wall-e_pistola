@@ -1,55 +1,94 @@
 #!/usr/bin/env python3
-from ev3dev2.motor import MediumMotor, LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveTank
+from ev3dev2.motor import MediumMotor, LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveTank, MoveSteering
 from ev3dev2.sound import Sound
-from ev3dev2.sensor.lego import InfraredSensor  
+from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
+from ev3dev2.sensor.lego import InfraredSensor
+from time import sleep
+import logging
 
-def sound():
+def planoB():
+    s = 3
+    i = 0
+    for i in range(s):
+      walk()
+
+    walkRight()
+    walkLeft()
+    oneShooter()
+
+    walk()
+    walkRight()
+    oneShooter()
+
+    walkLeft()
+    oneShooter()
+
+def sound(message):
   sound = Sound()
-  sound.speak('Welcome to the E V 3 dev project!')
+  sound.speak(message)
 
-tank_drive = MediumMotor(OUTPUT_D)
+def oneShooter(shots):
+    if shots > 0:
+        tank_shooter = MediumMotor(OUTPUT_D)
+        tank_shooter.on_for_rotations(SpeedPercent(75), 4)
+    else:
+        print("No Bullets!")
+        sound("No Bullets!")
 
-def oneShooter():
-  tank_drive.on_for_rotations(SpeedPercent(75), 4)
+# tank_drive = MoveTank(OUTPUT_B, OUTPUT_C)
 
-tank_drive = MoveTank(OUTPUT_B, OUTPUT_C)
-
-def walk():
-  tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), 15)
+def walk(time):
+  # tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
+  steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+  # drive in a turn for 10 rotations of the outer motor
+  steering_drive.on_for_rotations(0, SpeedPercent(75), 2)
 
 def walkRight():
-  tank_drive.on_for_rotations(SpeedPercent(50), SpeedPercent(75), 10)
+  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
+  steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+  # drive in a turn for 10 rotations of the outer motor
+  steering_drive.on_for_rotations(-20, SpeedPercent(75), 2)
+
+def turnRight():
+  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
+  steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+  # drive in a turn for 10 rotations of the outer motor
+  steering_drive.on_for_rotations(-100, SpeedPercent(50), 0.4)
+
+def turnLeft():
+  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
+  steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+  # drive in a turn for 10 rotations of the outer motor
+  steering_drive.on_for_rotations(100, SpeedPercent(50), 1)
 
 def walkLeft():
-  tank_drive.on_for_seconds(SpeedPercent(60), SpeedPercent(30), 3)
+  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
+  steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+  # drive in a turn for 10 rotations of the outer motor
+  steering_drive.on_for_rotations(20, SpeedPercent(50), 2)
 
-time = 3
-i = 0
-#for i in range(time):
-#   walk()
+def top_left_channel_1_action(state):
+    print("top left on channel 1: %s" % state)
 
-#walkRight()
-#walkLeft()
-#oneShooter()
+def bottom_right_channel_4_action(state):
+    print("bottom right on channel 4: %s" % state)
 
-#walk()
-#walkRight()
-#oneShooter()
+def walk_shooter_strategy():
+    count = 0
+    # Connect infrared and touch sensors to any sensor ports
+    ir = InfraredSensor(INPUT_1)
 
-#walkLeft()
-#oneShooter()
+    # Put the infrared sensor into proximity mode.
+    ir.mode = 'IR-PROX'
+    shots=3
+    while True:
+        distance = ir.value()
+        print(distance)
+        if distance > 50:
+            count = count + 1
+            turnRight()
+        else:
+            oneShooter(shots)
+            shots = shots - 1
 
-
-# Connect infrared and touch sensors to any sensor ports
-ir = InfraredSensor()
-
-# Put the infrared sensor into proximity mode.
-ir.mode = 'IR-PROX'
-
-while not ir.value():
-    distance = ir.value()
-    print(distance)
-    if distance < 60:
-        tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), 10)
-    else:
-        oneShooter()
+walk_shooter_strategy()
