@@ -4,7 +4,8 @@ from ev3dev2.sound import Sound
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.sensor.lego import InfraredSensor, ColorSensor
 from time import sleep
-import time, logging
+import time, logging, threading
+
 
 # default sleep timeout in sec
 DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.05
@@ -114,5 +115,28 @@ def detect_black():
           sound('NOT BLACK!')
       print(str(color_sensor.value()))
 
-while True:
-  turnRight()
+# threading ---------------------------
+
+def turnRightWorker():
+    while True:
+      turnRight()
+      time.sleep(1)
+
+
+def shooterDetectWorker():
+    infrared_sensor = InfraredSensor(INPUT_1)
+    infrared_sensor.mode = 'IR-SEEK'
+    count = 0
+    shots=3
+    while True:
+      distance = infrared_sensor.value()
+      if distance <= 50:
+          oneShooter(shots)
+          shots = shots - 1
+          time.sleep(1)
+
+t1 = threading.Thread(target= turnRightWorker)
+t2 = threading.Thread(target= shooterDetectWorker)
+
+t1.start()
+t2.start()
