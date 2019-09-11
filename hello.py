@@ -2,26 +2,12 @@
 from ev3dev2.motor import MediumMotor, LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveTank, MoveSteering
 from ev3dev2.sound import Sound
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
-from ev3dev2.sensor.lego import InfraredSensor
+from ev3dev2.sensor.lego import InfraredSensor, ColorSensor
 from time import sleep
-import logging
+import time, logging
 
-def planoB():
-    s = 3
-    i = 0
-    for i in range(s):
-      walk()
-
-    walkRight()
-    walkLeft()
-    oneShooter()
-
-    walk()
-    walkRight()
-    oneShooter()
-
-    walkLeft()
-    oneShooter()
+# default sleep timeout in sec
+DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.05
 
 def sound(message):
   sound = Sound()
@@ -38,33 +24,23 @@ def oneShooter(shots):
 # tank_drive = MoveTank(OUTPUT_B, OUTPUT_C)
 
 def walk(time):
-  # tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  # drive in a turn for 10 rotations of the outer motor
   steering_drive.on_for_rotations(0, SpeedPercent(75), 2)
 
 def walkRight():
-  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  # drive in a turn for 10 rotations of the outer motor
   steering_drive.on_for_rotations(-20, SpeedPercent(75), 2)
 
 def turnRight():
-  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  # drive in a turn for 10 rotations of the outer motor
-  steering_drive.on_for_rotations(-100, SpeedPercent(50), 0.4)
+  steering_drive.on_for_rotations(-100, SpeedPercent(25), 0.4)
 
 def turnLeft():
-  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  # drive in a turn for 10 rotations of the outer motor
   steering_drive.on_for_rotations(100, SpeedPercent(50), 1)
 
 def walkLeft():
-  #   tank_drive.on_for_rotations(SpeedPercent(75), SpeedPercent(75), time)
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  # drive in a turn for 10 rotations of the outer motor
   steering_drive.on_for_rotations(20, SpeedPercent(50), 2)
 
 def top_left_channel_1_action(state):
@@ -73,16 +49,25 @@ def top_left_channel_1_action(state):
 def bottom_right_channel_4_action(state):
     print("bottom right on channel 4: %s" % state)
 
-def walk_shooter_strategy():
-    count = 0
-    # Connect infrared and touch sensors to any sensor ports
-    ir = InfraredSensor(INPUT_1)
+def detect_robot():
+    infrared_sensor = InfraredSensor(INPUT_1)
+    infrared_sensor.mode = 'IR-SEEK'
+    canal = 1
+    while True:
+      dis = infrared_sensor.heading_and_distance(channel=canal)
 
-    # Put the infrared sensor into proximity mode.
-    ir.mode = 'IR-PROX'
+      sound('Distance')
+      time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
+      print(str(dis))
+
+def walk_shooter_strategy():
+    infrared_sensor = InfraredSensor(INPUT_1)
+    infrared_sensor.mode = 'IR-PROX'
+    count = 0
+
     shots=3
     while True:
-        distance = ir.value()
+        distance = infrared_sensor.value()
         print(distance)
         if distance > 50:
             count = count + 1
@@ -91,4 +76,43 @@ def walk_shooter_strategy():
             oneShooter(shots)
             shots = shots - 1
 
-walk_shooter_strategy()
+def detect_black():
+    # Connect infrared and touch sensors to any sensor ports
+    color_sensor = ColorSensor(INPUT_4)
+    # logging.info("color sensor connected: %s" % str(color_sensor.connected))
+    color_sensor.mode = 'COL-REFLECT'
+    while True:
+      time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
+      if(color_sensor.value() < 20):
+        sound('BLACK!')
+      else:
+        sound('NOT BLACK!')
+    print(str(color_sensor.value()))
+
+def walk_shooter_strategy():
+    infrared_sensor = InfraredSensor(INPUT_1)
+    infrared_sensor.mode = 'IR-SEEK'
+    count = 0
+
+    shots=3
+    while True:
+        distance = infrared_sensor.value()
+        print(distance)
+        if distance > 50:
+            count = count + 1
+            turnRight()
+        else:
+            oneShooter(shots)
+            shots = shots - 1
+
+def detect_black():
+      while True:
+        time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
+        if(color_sensor.value() < 20):
+          sound('BLACK!')
+        else:
+          sound('NOT BLACK!')
+      print(str(color_sensor.value()))
+
+while True:
+  turnRight()
