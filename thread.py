@@ -15,12 +15,9 @@ def sound(message):
   sound.speak(message)
 
 def oneShooter(shots):
-    if shots > 0:
+    # if shots > 0:
         tank_shooter = MediumMotor(OUTPUT_D)
         tank_shooter.on_for_rotations(SpeedPercent(75), 4)
-    else:
-        print("No Bullets!")
-        sound("No Bullets!")
 
 # tank_drive = MoveTank(OUTPUT_B, OUTPUT_C)
 
@@ -34,7 +31,7 @@ def walkRight():
 
 def turnRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(-100, SpeedPercent(25), 0.4)
+  steering_drive.on_for_rotations(-100, SpeedPercent(50), 0.3)
 
 def turnLeft():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
@@ -56,6 +53,8 @@ def detect_robot():
     canal = 1
     while True:
       dis = infrared_sensor.heading_and_distance(channel=canal)
+      if(dis[0] < 5 and dis[0] > 5):
+        oneShooter()
 
       sound('Distance')
       time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
@@ -135,8 +134,26 @@ def shooterDetectWorker():
           shots = shots - 1
           time.sleep(1)
 
+def robotDetectWorker():
+    infrared_sensor = InfraredSensor(INPUT_1)
+    infrared_sensor.mode = 'IR-SEEK'
+    shots=3
+    canal = 1
+    while True:
+      dis = infrared_sensor.heading_and_distance(channel=canal)
+      print(dis[0])
+      print(dis)
+      time.sleep(1)
+      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
+          print("entrou")
+          oneShooter(shots)
+          shots = shots - 1
+          time.sleep(1)
+
 t1 = threading.Thread(target= turnRightWorker)
-t2 = threading.Thread(target= shooterDetectWorker)
+#t2 = threading.Thread(target= shooterDetectWorker)
+t3 = threading.Thread(target=robotDetectWorker)
 
 t1.start()
-t2.start()
+# t2.start()
+t3.start()
