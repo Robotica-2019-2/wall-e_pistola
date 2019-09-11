@@ -7,7 +7,8 @@ from time import sleep
 import time, logging
 
 # default sleep timeout in sec
-DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.05
+DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.02
+DEFAULT_VELOCITY = 25
 
 def sound(message):
   sound = Sound()
@@ -25,23 +26,23 @@ def oneShooter(shots):
 
 def walk(time):
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(0, SpeedPercent(75), 2)
+  steering_drive.on_for_rotations(0, SpeedPercent(DEFAULT_VELOCITY), 2)
 
 def walkRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(-20, SpeedPercent(75), 2)
+  steering_drive.on_for_rotations(-20, SpeedPercent(DEFAULT_VELOCITY), 2)
 
 def turnRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(-100, SpeedPercent(25), 0.4)
+  steering_drive.on_for_rotations(-100, SpeedPercent(DEFAULT_VELOCITY), 0.5)
 
 def turnLeft():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(100, SpeedPercent(50), 1)
+  steering_drive.on_for_rotations(100, SpeedPercent(DEFAULT_VELOCITY), 0.5)
 
 def walkLeft():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(20, SpeedPercent(50), 2)
+  steering_drive.on_for_rotations(20, SpeedPercent(DEFAULT_VELOCITY), 2)
 
 def top_left_channel_1_action(state):
     print("top left on channel 1: %s" % state)
@@ -60,7 +61,7 @@ def detect_robot():
       time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
       print(str(dis))
 
-def walk_shooter_strategy():
+def walk_shooter_strategy_prox():
     infrared_sensor = InfraredSensor(INPUT_1)
     infrared_sensor.mode = 'IR-PROX'
     count = 0
@@ -89,21 +90,17 @@ def detect_black():
         sound('NOT BLACK!')
     print(str(color_sensor.value()))
 
-def walk_shooter_strategy():
+def walk_shooter_strategy_seek():
     infrared_sensor = InfraredSensor(INPUT_1)
     infrared_sensor.mode = 'IR-SEEK'
-    count = 0
 
-    shots=3
     while True:
-        distance = infrared_sensor.value()
-        print(distance)
-        if distance > 50:
-            count = count + 1
-            turnRight()
+        head = infrared_sensor.heading_and_distance[0]
+        print(head)
+        if head < 0:
+            turnLeft()
         else:
-            oneShooter(shots)
-            shots = shots - 1
+            turnRight()
 
 def detect_black():
       while True:
@@ -114,5 +111,4 @@ def detect_black():
           sound('NOT BLACK!')
       print(str(color_sensor.value()))
 
-while True:
-  turnRight()
+walk_shooter_strategy_seek()
