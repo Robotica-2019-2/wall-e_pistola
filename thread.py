@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from ev3dev2.motor import MediumMotor, LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveTank, MoveSteering
+from ev3dev2.motor import MediumMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveSteering
 from ev3dev2.sound import Sound
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.sensor.lego import InfraredSensor, ColorSensor
@@ -58,7 +58,7 @@ def detect_robot():
 
       sound('Distance')
       time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
-      print(str(dis))
+      # print(str(dis))
 
 def walk_shooter_strategy():
     infrared_sensor = InfraredSensor(INPUT_1)
@@ -68,7 +68,7 @@ def walk_shooter_strategy():
     shots=3
     while True:
         distance = infrared_sensor.value()
-        print(distance)
+        # print(distance)
         if distance > 50:
             count = count + 1
             turnRight()
@@ -137,23 +137,25 @@ def shooterDetectWorker():
 def robotDetectWorker():
     infrared_sensor = InfraredSensor(INPUT_1)
     infrared_sensor.mode = 'IR-SEEK'
+    
     shots=3
-    canal = 1
+    canal = 2
     while True:
       dis = infrared_sensor.heading_and_distance(channel=canal)
-      print(dis[0])
+      beacon = infrared_sensor.beacon(channel=canal)
       print(dis)
       time.sleep(1)
       if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
-          print("entrou")
-          oneShooter(shots)
-          shots = shots - 1
+          print(beacon)
+          # print(beacon)
+          # oneShooter(shots)
+          # shots = shots - 1
           time.sleep(1)
 
-t1 = threading.Thread(target= turnRightWorker)
+# t1 = threading.Thread(target= turnRightWorker)
 #t2 = threading.Thread(target= shooterDetectWorker)
 t3 = threading.Thread(target=robotDetectWorker)
-
-t1.start()
+# robotDetectWorker()
+# t1.start()
 # t2.start()
 t3.start()
