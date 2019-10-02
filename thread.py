@@ -6,7 +6,7 @@ from ev3dev2.sensor.lego import InfraredSensor, ColorSensor
 from time import sleep
 import time, logging, threading
 
-
+sleep_time = 0.3
 # default sleep timeout in sec
 DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.05
 
@@ -23,11 +23,11 @@ def oneShooter(shots):
 
 def walk(time):
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(0, SpeedPercent(75), 2)
+  steering_drive.on_for_rotations(0, SpeedPercent(50), 2)
 
 def walkRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(-20, SpeedPercent(75), 2)
+  steering_drive.on_for_rotations(-20, SpeedPercent(50), 2)
 
 def turnRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
@@ -115,12 +115,22 @@ def detect_black():
       print(str(color_sensor.value()))
 
 # threading ---------------------------
-
 def turnRightWorker():
+    global sleep_time
     while True:
       turnRight()
-      time.sleep(1)
+      print(sleep_time)
+      time.sleep(sleep_time)
+      sleep_time=0.3
 
+
+def wallDetectWorker():
+    infrared_sensor = InfraredSensor(INPUT_1)
+    infrared_sensor.mode = 'IR-SEEK'
+    count = 0
+    distance = infrared_sensor.value()
+    if distance <= 10:
+      turnRight()
 
 def shooterDetectWorker():
     infrared_sensor = InfraredSensor(INPUT_1)
@@ -137,14 +147,11 @@ def shooterDetectWorker():
 def robotDetectWorker():
     infrared_sensor = InfraredSensor(INPUT_1)
     infrared_sensor.mode = 'IR-SEEK'
-    
     shots=3
-    canal = 2
+    canal = 1
+    global sleep_time
     while True:
       dis = infrared_sensor.heading_and_distance(channel=canal)
-      beacon = infrared_sensor.beacon(channel=canal)
-      print(dis)
-      time.sleep(1)
       if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
           print(beacon)
           # print(beacon)
@@ -152,10 +159,26 @@ def robotDetectWorker():
           shots = shots - 1
           time.sleep(1)
 
-# t1 = threading.Thread(target= turnRightWorker)
+#t1 = threading.Thread(target= turnRightWorker)
 t2 = threading.Thread(target= shooterDetectWorker)
 t3 = threading.Thread(target=robotDetectWorker)
 # robotDetectWorker()
-# t1.start()
+#t1.start()
 t2.start()
 t3.start()
+# código eliseu:
+#           sleep_time=5
+#           oneShooter(shots)
+#           shots = shots - 1
+#           time.sleep(1)
+# print("start!")
+# time.sleep(30)
+# walk()
+# walk()
+# t1 = threading.Thread(target= turnRightWorker)
+#t2 = threading.Thread(target= shooterDetectWorker)
+# t3 = threading.Thread(target=robotDetectWorker)
+# robotDetectWorker()
+# t1.start()
+# t2.start()
+# t3.start()
