@@ -148,14 +148,14 @@ def robotDetectWorker():
       if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
           print(beacon)
           # print(beacon)
-          # oneShooter(shots)
-          # shots = shots - 1
+          oneShooter(shots)
+          shots = shots - 1
           time.sleep(1)
 
 # t1 = threading.Thread(target= turnRightWorker)
-#t2 = threading.Thread(target= shooterDetectWorker)
+t2 = threading.Thread(target= shooterDetectWorker)
 t3 = threading.Thread(target=robotDetectWorker)
 # robotDetectWorker()
 # t1.start()
-# t2.start()
+t2.start()
 t3.start()
