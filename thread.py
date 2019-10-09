@@ -2,7 +2,7 @@
 from ev3dev2.motor import MediumMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent, MoveSteering
 from ev3dev2.sound import Sound
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
-from ev3dev2.sensor.lego import InfraredSensor, ColorSensor
+from ev3dev2.sensor.lego import InfraredSensor, ColorSensor, TouchSensor
 from time import sleep
 import time, logging, threading
 
@@ -21,9 +21,18 @@ def oneShooter(shots):
 
 # tank_drive = MoveTank(OUTPUT_B, OUTPUT_C)
 
-def walk(time):
+def walk():
+  t=0
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(0, SpeedPercent(50), 2)
+  steering_drive.on(1, 50)
+  t=t+1
+  print('\n')
+  print(t)q
+  if(t>10):
+    
+    steering_drive.off()
+    
+  # steering_drive.on_for_seconds(0, SpeedPercent(50), 1)
 
 def walkRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
@@ -115,15 +124,6 @@ def detect_black():
       print(str(color_sensor.value()))
 
 # threading ---------------------------
-def turnRightWorker():
-    global sleep_time
-    while True:
-      turnRight()
-      print(sleep_time)
-      time.sleep(sleep_time)
-      sleep_time=0.3
-
-
 def wallDetectWorker():
     infrared_sensor = InfraredSensor(INPUT_1)
     infrared_sensor.mode = 'IR-SEEK'
@@ -131,6 +131,27 @@ def wallDetectWorker():
     distance = infrared_sensor.value()
     if distance <= 10:
       turnRight()
+
+def robotDetectWorker():
+    infrared_sensor = InfraredSensor(INPUT_1)
+    infrared_sensor.mode = 'IR-SEEK'
+    shots=3
+    canal = 1
+    while True:
+      dis = infrared_sensor.heading_and_distance(channel=canal)
+      print(str(dis))
+      time.sleep(0.5)
+      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
+          oneShooter(shots)
+          shots = shots - 1
+
+def turnRightWorker():
+    global sleep_time
+    while True:
+      turnRight()
+      print(sleep_time)
+      time.sleep(sleep_time)
+      sleep_time=0.3
 
 def shooterDetectWorker():
     infrared_sensor = InfraredSensor(INPUT_1)
@@ -140,45 +161,44 @@ def shooterDetectWorker():
     while True:
       distance = infrared_sensor.value()
       if distance <= 50:
+          #parar de andar
           oneShooter(shots)
           shots = shots - 1
           time.sleep(1)
 
-def robotDetectWorker():
-    infrared_sensor = InfraredSensor(INPUT_1)
-    infrared_sensor.mode = 'IR-SEEK'
-    shots=3
-    canal = 1
-    global sleep_time
-    while True:
-      dis = infrared_sensor.heading_and_distance(channel=canal)
-      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
-          print(beacon)
-          # print(beacon)
-          oneShooter(shots)
-          shots = shots - 1
-          time.sleep(1)
+def onlyWalkWorker():
+  walk()
 
-#t1 = threading.Thread(target= turnRightWorker)
-t2 = threading.Thread(target= shooterDetectWorker)
-t3 = threading.Thread(target=robotDetectWorker)
-# robotDetectWorker()
-#t1.start()
-t2.start()
-t3.start()
-# código eliseu:
-#           sleep_time=5
-#           oneShooter(shots)
-#           shots = shots - 1
-#           time.sleep(1)
-# print("start!")
-# time.sleep(30)
-# walk()
-# walk()
-# t1 = threading.Thread(target= turnRightWorker)
-#t2 = threading.Thread(target= shooterDetectWorker)
+def deathTread(t2):
+  time.sleep(2)
+  t2.join()
+
+ts = TouchSensor(INPUT_2)
+
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+print("#################################")
+while not ts.is_pressed:
+  time.sleep(0.2)
+
 # t3 = threading.Thread(target=robotDetectWorker)
-# robotDetectWorker()
-# t1.start()
-# t2.start()
+# t3.start() 
+t2 = threading.Thread(target=onlyWalkWorker)
+t2.start()
+
+# t3 = threading.Thread(target=deathTread(t2))
+# t3.join()
 # t3.start()
+
