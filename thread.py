@@ -6,6 +6,16 @@ from ev3dev2.sensor.lego import InfraredSensor, ColorSensor, TouchSensor
 from time import sleep
 import time, logging, threading
 
+# INPUT_1 - InfraredSensor
+# INPUT_2 - TouchSensor
+# INPUT_3
+# INPUT_4 - ColorSensor
+
+# OUTPUT_A
+# OUTPUT_B - MoveTank (Motor Esquerdo)
+# OUTPUT_C - MoveTank (Motor Direito)
+# OUTPUT_D - MediumMotor (Motor de Tiro)
+
 sleep_time = 0.3
 # default sleep timeout in sec
 DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.05
@@ -21,18 +31,20 @@ def oneShooter(shots):
 
 # tank_drive = MoveTank(OUTPUT_B, OUTPUT_C)
 
-def walk():
-  t=0
+# def walk():
+#   t=0
+#   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+#   steering_drive.on(1, 50)
+#   t=t+1
+#   print('\n')
+#   print(t)
+#   if(t>10):
+#     steering_drive.off()
+
+def walkOnly():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on(1, 50)
-  t=t+1
-  print('\n')
-  print(t)q
-  if(t>10):
-    
-    steering_drive.off()
-    
-  # steering_drive.on_for_seconds(0, SpeedPercent(50), 1)
+  # steering_drive.on_for_rotations(0, SpeedPercent(25), 2)
+  steering_drive.on_for_seconds(0, SpeedPercent(50), 5)
 
 def walkRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
@@ -40,7 +52,7 @@ def walkRight():
 
 def turnRight():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
-  steering_drive.on_for_rotations(-100, SpeedPercent(50), 0.3)
+  steering_drive.on_for_rotations(-100, SpeedPercent(50), 2)
 
 def turnLeft():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
@@ -49,6 +61,10 @@ def turnLeft():
 def walkLeft():
   steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
   steering_drive.on_for_rotations(20, SpeedPercent(50), 2)
+
+def walkBack():
+  steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+  steering_drive.on_for_rotations(100, SpeedPercent(50), 3)
 
 def top_left_channel_1_action(state):
     print("top left on channel 1: %s" % state)
@@ -62,7 +78,7 @@ def detect_robot():
     canal = 1
     while True:
       dis = infrared_sensor.heading_and_distance(channel=canal)
-      if(dis[0] < 5 and dis[0] > 5):
+      if(dis[1] is not None and dis[0] < 5 and dis[0] > 5):
         oneShooter()
 
       sound('Distance')
@@ -70,80 +86,97 @@ def detect_robot():
       # print(str(dis))
 
 def walk_shooter_strategy():
-    infrared_sensor = InfraredSensor(INPUT_1)
-    infrared_sensor.mode = 'IR-PROX'
-    count = 0
-
+    global stopMotorSensor
+    global stopColorSensor
+    global stopProxSensor
+    global stopInfraredSensor
+    global infrared_sensor
     shots=3
+    infrared_sensor.mode = 'IR-PROX'
     while True:
+        if(stopProxSensor):
+          break  
         distance = infrared_sensor.value()
-        # print(distance)
-        if distance > 50:
-            count = count + 1
-            turnRight()
-        else:
-            oneShooter(shots)
-            shots = shots - 1
+        if distance < 5:
+              stopMotorSensor=True
+              stopColorSensor=True
+              time.sleep(0.5)
+              turnRight()
+              stopMotorSensor=False
+              stopColorSensor=False
+              t2 = threading.Thread(target=onlyWalkWorker)
+              t2.start()
+              # t3 = threading.Thread(target=detectBlackWorker)
+              # t3.start()
 
 def detect_black():
-    # Connect infrared and touch sensors to any sensor ports
+    global  stopColorSensor
+    global  stopInfraredSensor
+    global  stopMotorSensor
+    global  stopProxSensor
+
     color_sensor = ColorSensor(INPUT_4)
-    # logging.info("color sensor connected: %s" % str(color_sensor.connected))
     color_sensor.mode = 'COL-REFLECT'
-    while True:
+    while True:    
+      if(stopColorSensor):
+        break
       time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
       if(color_sensor.value() < 20):
-        sound('BLACK!')
-      else:
-        sound('NOT BLACK!')
+        #DEU PRETO
+        stopInfraredSensor=True
+        stopMotorSensor=True
+        stopProxSensor=True
+        time.sleep(0.5)
+        walkBack()
+        stopInfraredSensor=False
+        stopMotorSensor=False
+        stopProxSensor=False
+        time.sleep(0.5)
+        t2 = threading.Thread(target=onlyWalkWorker)
+        t2.start()
+        # t3 = threading.Thread(target=detectBlackWorker)
+        # t3.start()
+        t4 = threading.Thread(target=walk_shooter_strategy)
+        t4.start()
     print(str(color_sensor.value()))
 
-def walk_shooter_strategy():
-    infrared_sensor = InfraredSensor(INPUT_1)
-    infrared_sensor.mode = 'IR-SEEK'
-    count = 0
-
-    shots=3
-    while True:
-        distance = infrared_sensor.value()
-        print(distance)
-        if distance > 50:
-            count = count + 1
-            turnRight()
-        else:
-            oneShooter(shots)
-            shots = shots - 1
-
-def detect_black():
-      while True:
-        time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
-        if(color_sensor.value() < 20):
-          sound('BLACK!')
-        else:
-          sound('NOT BLACK!')
-      print(str(color_sensor.value()))
-
 # threading ---------------------------
-def wallDetectWorker():
-    infrared_sensor = InfraredSensor(INPUT_1)
-    infrared_sensor.mode = 'IR-SEEK'
-    count = 0
-    distance = infrared_sensor.value()
-    if distance <= 10:
-      turnRight()
 
 def robotDetectWorker():
-    infrared_sensor = InfraredSensor(INPUT_1)
-    infrared_sensor.mode = 'IR-SEEK'
+    global stopColorSensor
+    global stopInfraredSensor
+    global stopMotorSensor
+    global stopProxSensor
+    global infrared_sensor
+
     shots=3
     canal = 1
     while True:
+      if(stopInfraredSensor):
+        break
+      infrared_sensor.mode = 'IR-SEEK'     
       dis = infrared_sensor.heading_and_distance(channel=canal)
       print(str(dis))
-      time.sleep(0.5)
-      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
+      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 50):
+          print('ATIROOOOOOOOOOOOOOOOOOOOOOOU')
           oneShooter(shots)
           shots = shots - 1
+      else:
+        infrared_sensor.mode = 'IR-PROX'
+        distance = infrared_sensor.value()
+        if distance <= 30:
+          stopMotorSensor=True
+          stopColorSensor=True
+          time.sleep(0.5)
+          turnRight()
+          time.sleep(0.5)
+          stopMotorSensor=False
+          stopColorSensor=False
+          t2 = threading.Thread(target=onlyWalkWorker)
+          t2.start()
+          # t3 = threading.Thread(target=detectBlackWorker)
+          # t3.start()
+              
 
 def turnRightWorker():
     global sleep_time
@@ -153,21 +186,17 @@ def turnRightWorker():
       time.sleep(sleep_time)
       sleep_time=0.3
 
-def shooterDetectWorker():
-    infrared_sensor = InfraredSensor(INPUT_1)
-    infrared_sensor.mode = 'IR-SEEK'
-    count = 0
-    shots=3
-    while True:
-      distance = infrared_sensor.value()
-      if distance <= 50:
-          #parar de andar
-          oneShooter(shots)
-          shots = shots - 1
-          time.sleep(1)
-
 def onlyWalkWorker():
-  walk()
+  global stopColorSensor
+  global stopInfraredSensor
+  global stopMotorSensor
+  while True:
+    if(stopMotorSensor):
+        break
+    walkOnly()
+
+def detectBlackWorker():
+  detect_black()
 
 def deathTread(t2):
   time.sleep(2)
@@ -193,12 +222,31 @@ print("#################################")
 while not ts.is_pressed:
   time.sleep(0.2)
 
-# t3 = threading.Thread(target=robotDetectWorker)
-# t3.start() 
-t2 = threading.Thread(target=onlyWalkWorker)
-t2.start()
+def main():
+  global stopColorSensor
+  global stopInfraredSensor
+  global stopMotorSensor
+  global stopProxSensor
+  global infrared_sensor
+  
+  infrared_sensor = InfraredSensor(INPUT_1)
 
-# t3 = threading.Thread(target=deathTread(t2))
-# t3.join()
-# t3.start()
+  stopColorSensor=False
+  stopInfraredSensor=False
+  stopMotorSensor=False
+  stopProxSensor=False
+
+  t1 = threading.Thread(target=robotDetectWorker)
+  t1.start() 
+
+  t2 = threading.Thread(target=onlyWalkWorker)
+  t2.start()
+
+  # t3 = threading.Thread(target=detectBlackWorker)
+  # t3.start()
+
+  #t4 = threading.Thread(target=walk_shooter_strategy)
+  #t4.start()
+  
+main()
 
