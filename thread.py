@@ -48,10 +48,10 @@ def walkRight():
   walkRotations(-20,50,2)
 
 def turnRight():
-  walkRotations(-100,50,2)
+  walkRotations(-100,50,1)
 
 def turnLeft():
-  walkRotations(100,50,2)
+  walkRotations(100,50,1)
 
 def walkLeft():
   walkRotations(20,50,2)
@@ -94,13 +94,14 @@ def robotDetectWorker():
     # global stopProxSensor
     global infrared_sensor
 
-    canal = 1
+    
     while True:
       if(stopInfraredSensor):
         break
       infrared_sensor.mode = 'IR-SEEK'     
-      dis = infrared_sensor.heading_and_distance(4)
-      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
+      dis = infrared_sensor.heading_and_distance(4) # CANAL
+
+      if(dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 50):
           oneShooter()
       else:
         infrared_sensor.mode = 'IR-PROX'
@@ -111,7 +112,7 @@ def robotDetectWorker():
           turnRight()
           time.sleep(0.5)
           stopMotorSensor=False
-          t2 = threading.Thread(target=onlyWalkWorker)
+          t2 = threading.Thread(target=onlyWalkWithStopWorker)
           t2.start()
 
 def onlyWalkWorker():
@@ -121,6 +122,16 @@ def onlyWalkWorker():
     if(stopMotorSensor):
         break
     walkOnly()
+
+# movimentação com paradas
+def onlyWalkWithStopWorker():
+      global stopInfraredSensor
+  global stopMotorSensor
+  while True:
+    if(stopMotorSensor):
+        break
+    walkRotations(0,50,2)
+    time.sleep(0.5)
 
 #-------------------------------------- MAIN ---------------------------------------#
 
@@ -160,7 +171,7 @@ def main():
   t1 = threading.Thread(target=robotDetectWorker)
   t1.start() 
 
-  t2 = threading.Thread(target=onlyWalkWorker)
+  t2 = threading.Thread(target=onlyWalkWithStopWorker)
   t2.start()
 
   #t4 = threading.Thread(target=proxDetectWorker)
