@@ -20,6 +20,7 @@ import time, logging, threading
 
 #-------------------------------------- AÇÕES ---------------------------------------#
 
+channel = 4
 sleep_time = 0.3
 DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.05
 
@@ -89,6 +90,17 @@ def turnRightWorker():
       time.sleep(sleep_time)
       sleep_time=0.3
 
+# def searchDetectWorker():
+#     global left
+#     global right
+#     global stopInfraredSensor
+#     global stopMotorSensor
+#     # global stopProxSensor
+#     global infrared_sensor
+
+#     while True:
+#           print(in)
+
 def robotDetectWorker():
     global stopInfraredSensor
     global stopMotorSensor
@@ -100,10 +112,14 @@ def robotDetectWorker():
       if(stopInfraredSensor):
         break
       infrared_sensor.mode = 'IR-SEEK'     
-      dis = infrared_sensor.heading_and_distance(4) # CANAL
+      dis = infrared_sensor.heading_and_distance(channel) # CANAL
 
-      if(dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 50):
-          oneShooter()
+      while (dis[1] is not None and dis[0] > -30 and dis[0] < 30):
+        if(dis[0]>-15 and dis[0]>-30):
+              if(dis[0])
+                
+        if(dis[0] > -15 and dis[0] < 15 and dis[1] < 50)
+            oneShooter()
       else:
         infrared_sensor.mode = 'IR-PROX'
         distance = infrared_sensor.value()
@@ -112,19 +128,11 @@ def robotDetectWorker():
           time.sleep(0.5)
           turnRight()
           time.sleep(0.5)
+          distance = infrared_sensor.value()
           if distance > 40:
             stopMotorSensor=False
-            distance = infrared_sensor.value()
             t2 = threading.Thread(target=onlyWalkWithStopWorker)
             t2.start()
-
-def onlyWalkWorker():
-  global stopInfraredSensor
-  global stopMotorSensor
-  while True:
-    if(stopMotorSensor):
-        break
-    walkOnly()
 
 # movimentação com paradas
 def onlyWalkWithStopWorker():
