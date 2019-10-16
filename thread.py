@@ -48,7 +48,8 @@ def walkRight():
   walkRotations(-20,50,2)
 
 def turnRight():
-  walkRotations(-100,50,1)
+  walkSeconds(-100,50,1)
+  # walkRotations(-100,50,1)
 
 def turnLeft():
   walkRotations(100,50,1)
@@ -106,14 +107,16 @@ def robotDetectWorker():
       else:
         infrared_sensor.mode = 'IR-PROX'
         distance = infrared_sensor.value()
-        if distance <= 30:
+        if distance <= 40:
           stopMotorSensor=True
           time.sleep(0.5)
           turnRight()
           time.sleep(0.5)
-          stopMotorSensor=False
-          t2 = threading.Thread(target=onlyWalkWithStopWorker)
-          t2.start()
+          distance = infrared_sensor.value()
+          if distance > 40:
+            stopMotorSensor=False
+            t2 = threading.Thread(target=onlyWalkWithStopWorker)
+            t2.start()
 
 def onlyWalkWorker():
   global stopInfraredSensor
@@ -130,9 +133,9 @@ def onlyWalkWithStopWorker():
   while True:
     if(stopMotorSensor):
         break
-    time.sleep(0.5)
-    walkRotations(0,50,2)
-    time.sleep(0.5)
+    time.sleep(0.2)
+    walkRotations(0,100,2)
+    time.sleep(0.2)
 
 #-------------------------------------- MAIN ---------------------------------------#
 
