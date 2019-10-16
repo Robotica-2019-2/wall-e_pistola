@@ -119,9 +119,10 @@ def robotDetectWorker():
           infrared_sensor.mode = 'IR-SEEK'
           time.sleep(0.5)     
           dis = infrared_sensor.heading_and_distance(4) # CANAL
-          if(dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):
+          while (dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):  
               oneShooter()
               time.sleep(0.5)
+              dis = infrared_sensor.heading_and_distance(4) # CANAL
           walkSeconds(100, 50, 2)
           time.sleep(0.6)
           infrared_sensor.mode = 'IR-PROX'
