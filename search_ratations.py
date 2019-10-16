@@ -89,14 +89,28 @@ def turnRightWorker():
       time.sleep(sleep_time)
       sleep_time=0.3
 
+def alo():
+    global infrared_sensor
+    global stopGiraSensor
+    while True:
+      if stopGiraSensor:
+          break
+      infrared_sensor.mode = 'IR-SEEK'     
+      dis = infrared_sensor.heading_and_distance(4) # CANAL
+
+      if(dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):
+          oneShooter() 
+
 
 def robotDetectWorker():
     global stopInfraredSensor
     global stopMotorSensor
     # global stopProxSensor
     global infrared_sensor
+    global stopGiraSensor
 
-    
+    stopGiraSensor = True
+
     while True:
       if(stopInfraredSensor):
         break
@@ -114,19 +128,21 @@ def robotDetectWorker():
           stopMotorSensor=True
           time.sleep(0.5)
           walkSeconds(-100, 50, 1)
+          stopGiraSensor = False
+          t20 = threading.Thread(target=alo)
+          t20.start()
           time.sleep(0.6)
           dis1 = infrared_sensor.value()
-          infrared_sensor.mode = 'IR-SEEK'
-          time.sleep(0.5)     
-          dis = infrared_sensor.heading_and_distance(4) # CANAL
-          while (dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):  
-              oneShooter()
-              time.sleep(0.5)
-              dis = infrared_sensor.heading_and_distance(4) # CANAL
+          stopGiraSensor = True
+          time.sleep(0.5)
           walkSeconds(100, 50, 2)
+          stopGiraSensor = False
+          t20 = threading.Thread(target=alo)
+          t20.start()
           time.sleep(0.6)
           infrared_sensor.mode = 'IR-PROX'
           dis2 = infrared_sensor.value()
+          stopGiraSensor = True
           if (dis2 < dis1):
             walkSeconds(-100, 50, 2)
             time.sleep(0.6)
@@ -154,7 +170,7 @@ def onlyWalkWithStopWorker():
     if(stopMotorSensor):
         break
     time.sleep(0.2)
-    walkRotations(2,100,2)
+    walkRotations(0,100,2)
     time.sleep(0.2)
 
 #-------------------------------------- MAIN ---------------------------------------#

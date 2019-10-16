@@ -108,7 +108,7 @@ def robotDetectWorker():
       else:
         infrared_sensor.mode = 'IR-PROX'
         distance = infrared_sensor.value()
-        if distance <= 40:
+        if distance <= 30:
           #t = threading.Thread(target=searchMode)
           #t.start()
           stopMotorSensor=True
@@ -154,7 +154,7 @@ def onlyWalkWithStopWorker():
     if(stopMotorSensor):
         break
     time.sleep(0.2)
-    walkRotations(2,100,2)
+    walkRotations(0,100,2)
     time.sleep(0.2)
 
 #-------------------------------------- MAIN ---------------------------------------#
