@@ -28,11 +28,11 @@ def sound(message):
   sound.speak(message)
 
 def oneShooter():
-        tank_shooter = MediumMotor(OUTPUT_D)
-        tank_shooter.on_for_rotations(SpeedPercent(75), 4)
+  tank_shooter = MediumMotor(OUTPUT_D)
+  tank_shooter.on_for_rotations(SpeedPercent(75), 4)
 
 def walkSeconds(direction, velocity, seconds):
-      steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
+  steering_drive = MoveSteering(OUTPUT_B, OUTPUT_C)
   steering_drive.on_for_seconds(direction, SpeedPercent(velocity), seconds)
 
 def walkRotations(direction, velocity, rotations):
@@ -116,7 +116,7 @@ def robotDetectWorker():
           t2.start()
 
 def onlyWalkWorker():
-      global stopInfraredSensor
+  global stopInfraredSensor
   global stopMotorSensor
   while True:
     if(stopMotorSensor):
@@ -125,11 +125,12 @@ def onlyWalkWorker():
 
 # movimentação com paradas
 def onlyWalkWithStopWorker():
-      global stopInfraredSensor
+  global stopInfraredSensor
   global stopMotorSensor
   while True:
     if(stopMotorSensor):
         break
+    time.sleep(0.5)
     walkRotations(0,50,2)
     time.sleep(0.5)
 
