@@ -24,8 +24,7 @@ def sound(message):
   sound = Sound()
   sound.speak(message)
 
-def oneShooter(shots):
-    # if shots > 0:
+def oneShooter():
         tank_shooter = MediumMotor(OUTPUT_D)
         tank_shooter.on_for_rotations(SpeedPercent(75), 4)
 
@@ -72,17 +71,17 @@ def top_left_channel_1_action(state):
 def bottom_right_channel_4_action(state):
     print("bottom right on channel 4: %s" % state)
 
-def detect_robot():
-    infrared_sensor = InfraredSensor(INPUT_1)
-    infrared_sensor.mode = 'IR-SEEK'
-    canal = 1
-    while True:
-      dis = infrared_sensor.heading_and_distance(channel=canal)
-      if(dis[1] is not None and dis[0] < 5 and dis[0] > 5):
-        oneShooter()
+# def detect_robot():
+#     infrared_sensor = InfraredSensor(INPUT_1)
+#     infrared_sensor.mode = 'IR-SEEK'
+#     canal = 1
+#     while True:
+#       dis = infrared_sensor.heading_and_distance(channel=canal)
+#       if(dis[1] is not None and dis[0] < 5 and dis[0] > 5):
+#         oneShooter()
 
-      sound('Distance')
-      time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
+#       sound('Distance')
+#       time.sleep(DEFAULT_SLEEP_TIMEOUT_IN_SEC)
       # print(str(dis))
 
 def walk_shooter_strategy():
@@ -149,18 +148,14 @@ def robotDetectWorker():
     global stopProxSensor
     global infrared_sensor
 
-    shots=3
     canal = 1
     while True:
       if(stopInfraredSensor):
         break
       infrared_sensor.mode = 'IR-SEEK'     
-      dis = infrared_sensor.heading_and_distance(channel=canal)
-      print(str(dis))
-      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 50):
-          print('ATIROOOOOOOOOOOOOOOOOOOOOOOU')
-          oneShooter(shots)
-          shots = shots - 1
+      dis = infrared_sensor.heading_and_distance(4)
+      if(dis[1] is not None and dis[0] > -5 and dis[0] < 5 and dis[1] < 30):
+          oneShooter()
       else:
         infrared_sensor.mode = 'IR-PROX'
         distance = infrared_sensor.value()
