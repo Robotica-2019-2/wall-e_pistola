@@ -89,6 +89,7 @@ def turnRightWorker():
       time.sleep(sleep_time)
       sleep_time=0.3
 
+
 def robotDetectWorker():
     global stopInfraredSensor
     global stopMotorSensor
@@ -108,10 +109,30 @@ def robotDetectWorker():
         infrared_sensor.mode = 'IR-PROX'
         distance = infrared_sensor.value()
         if distance <= 40:
+          #t = threading.Thread(target=searchMode)
+          #t.start()
           stopMotorSensor=True
           time.sleep(0.5)
-          turnRight()
-          time.sleep(0.5)
+          walkSeconds(-100, 50, 1)
+          time.sleep(0.6)
+          dis1 = infrared_sensor.value()
+          infrared_sensor.mode = 'IR-SEEK'
+          time.sleep(0.5)     
+          dis = infrared_sensor.heading_and_distance(4) # CANAL
+          if(dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):
+              oneShooter()
+              time.sleep(0.5)
+          walkSeconds(100, 50, 2)
+          time.sleep(0.6)
+          infrared_sensor.mode = 'IR-PROX'
+          dis2 = infrared_sensor.value()
+          if (dis2 < dis1):
+            walkSeconds(-100, 50, 2)
+            time.sleep(0.6)
+          #stopMotorSensor=True
+          #time.sleep(0.5)
+          #turnRight()
+          #time.sleep(0.5)
           stopMotorSensor=False
           t2 = threading.Thread(target=onlyWalkWithStopWorker)
           t2.start()
@@ -132,7 +153,7 @@ def onlyWalkWithStopWorker():
     if(stopMotorSensor):
         break
     time.sleep(0.2)
-    walkRotations(0,100,2)
+    walkRotations(2,100,2)
     time.sleep(0.2)
 
 #-------------------------------------- MAIN ---------------------------------------#
@@ -161,6 +182,7 @@ while not ts.is_pressed:
 def main():
   global stopInfraredSensor
   global stopMotorSensor
+  global stopGiraSensor
   # global stopProxSensor
   global infrared_sensor
   
@@ -168,6 +190,7 @@ def main():
 
   stopInfraredSensor=False
   stopMotorSensor=False
+  stopGiraSensor=False
   # stopProxSensor=False
 
   t1 = threading.Thread(target=robotDetectWorker)
@@ -176,7 +199,5 @@ def main():
   t2 = threading.Thread(target=onlyWalkWithStopWorker)
   t2.start()
 
-  #t4 = threading.Thread(target=proxDetectWorker)
-  #t4.start()
-  
+
 main()
