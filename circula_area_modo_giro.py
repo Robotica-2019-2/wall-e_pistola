@@ -39,15 +39,17 @@ def walkRotations(direction, velocity, rotations):
 def walkBack():
   walkRotations(-100,50,3)
 
-def stopThread(motor,patrol,infra):
+def stopThread(motor, patrol, infra, giro):
   global stopMotorSensor
   global stopPatrol
   global stopInfraredSensor
+  global stopGiro
   stopMotorSensor = motor
   stopPatrol = patrol
   stopInfraredSensor = infra
+  stopGiro = giro
 
-def startThread(motor, patrol, infra):
+def startThread(motor, patrol, infra, giro):
   if(motor):
     t1 = threading.Thread(target=onlyWalkWorker)
     t1.start() 
@@ -57,8 +59,18 @@ def startThread(motor, patrol, infra):
   if(infra):
     t3 = threading.Thread(target=robotDetectWorker)
     t3.start()
+  if(giro):
+    t4 = threading.Thread(target=giroWorker)
+    t4.start()
 
 #-------------------------------------- WORKERS ---------------------------------------#
+
+def giroWorker():
+  global stopGiro
+    while True:
+      if(stopGiro):
+        break
+      walkSeconds(-100,100,1.7)
 
 def robotDetectWorker():
     global stopInfraredSensor
@@ -70,13 +82,20 @@ def robotDetectWorker():
       infrared_sensor.mode = 'IR-SEEK'     
       dis = infrared_sensor.heading_and_distance(CANAL)
 
-      if(dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):
-        oneShooter()
+      if(dis[1] is not None and dis[0] > -30 and dis[0] < 30):
+        stopThread(True, True, False, False)
+        startThread(False,False,False,True)
+        while(dis[0] > -15 and dis[0] < 15 and dis[0] > 60):
+          stopThread(True, True, False, True)              
+          time.sleep(0.5)
+          oneShooter()
+          time.sleep(0.5)
+          dis = infrared_sensor.heading_and_distance(CANAL)
       else:
         infrared_sensor.mode = 'IR-PROX'
         distance = infrared_sensor.value()
         if distance <= 15:
-          stopThread(True, True, False)
+          stopThread(True, True, False, True)
           walkSeconds(-100,35,1.37) 
           dis = infrared_sensor.heading_and_distance(CANAL)
           while (dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):
@@ -84,8 +103,8 @@ def robotDetectWorker():
               oneShooter()
               time.sleep(0.5)
               dis = infrared_sensor.heading_and_distance(CANAL)
-          stopThread(False, True, False)
-          startThread(True, False, False)
+          stopThread(False, True, False, True)
+          startThread(True, False, False, False)
     
 def onlyWalkWorker():
   global count
@@ -96,10 +115,10 @@ def onlyWalkWorker():
     walkSeconds(0,50,5)
     count=count+1
   if(count>=15):
-    stopThread(True,True,False)
+    stopThread(True,True,False,True)
     walkSeconds(-100,35,1.37)
     walkSeconds(100,35,1.37)
-    startThread(True,False,False)
+    startThread(True,False,False,False)
     
 def patrolEdgeWorker():
   global count
@@ -111,8 +130,8 @@ def patrolEdgeWorker():
     walkSeconds(100,35,1.37)
     count=count+1
   if(count>=5):
-    stopThread(True,True,False)
-    startThread(True,False,False)
+    stopThread(True,True,False,True)
+    startThread(True,False,False,False)
 
 #-------------------------------------- MAIN ---------------------------------------#
 
@@ -141,13 +160,15 @@ def main():
   global stopMotorSensor
   global stopPatrol
   global stopInfraredSensor
+  global stopGiro
   stopMotorSensor=False
   stopPatrol=True
   stopInfraredSensor=False
+  stopGiro=True
   global infrared_sensor
   infrared_sensor = InfraredSensor(INPUT_1)
 
-  startThread(True, True, True)
-  stopThread(False, True, False)
+  startThread(True, True, True, False)
+  stopThread(False, True, False, True)
 
 main()
