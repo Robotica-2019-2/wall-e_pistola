@@ -48,13 +48,20 @@ def stopThread(motor,patrol,infra):
   stopInfraredSensor = infra
 
 def startThread(motor, patrol, infra):
+  global stopMotorSensor
+  global stopPatrol
+  global stopInfraredSensor
+  
   if(motor):
+    stopMotorSensor = False
     t1 = threading.Thread(target=onlyWalkWorker)
     t1.start() 
   if(patrol):
+    stopPatrol = False
     t2 = threading.Thread(target=patrolEdgeWorker)
     t2.start() 
   if(infra):
+    stopInfraredSensor = False
     t3 = threading.Thread(target=robotDetectWorker)
     t3.start()
 
@@ -88,29 +95,28 @@ def robotDetectWorker():
           startThread(True, False, False)
     
 def onlyWalkWorker():
-  global count
-  count = 0
-  while True and stopPatrol and count < 15:
+  global countWalk
+  while True and stopPatrol and countWalk < 15:
     if(stopMotorSensor):
         break
     walkSeconds(0,50,5)
-    count=count+1
-  if(count>=15):
+    countWalk=countWalk+1
+  if(countWalk>=15):
     stopThread(True,True,False)
     walkSeconds(-100,35,1.37)
     walkSeconds(100,35,1.37)
     startThread(True,False,False)
+    countWalk = 0
     
 def patrolEdgeWorker():
-  global count
-  count = 0
-  while True and stopMotorSensor and count < 5:
+  global countPatrol
+  while True and stopMotorSensor and countPatrol < 5:
     if(stopPatrol):
       break
     walkSeconds(-100,35,1.37)
     walkSeconds(100,35,1.37)
-    count=count+1
-  if(count>=5):
+    countPatrol=countPatrol+1
+  if(countPatrol>=5):
     stopThread(True,True,False)
     startThread(True,False,False)
 
@@ -141,13 +147,17 @@ def main():
   global stopMotorSensor
   global stopPatrol
   global stopInfraredSensor
+  global countWalk
+  global countPatrol
   stopMotorSensor=False
-  stopPatrol=True
+  stopPatrol=False
   stopInfraredSensor=False
+  countWalk = 0
+  countPatrol = 0
   global infrared_sensor
   infrared_sensor = InfraredSensor(INPUT_1)
-
-  startThread(True, True, True)
-  stopThread(False, True, False)
+  
+  stopThread(False, False, False)
+  startThread(False, True, True)
 
 main()
