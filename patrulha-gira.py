@@ -203,7 +203,6 @@ def main():
   global stopInfraredSensor
   global stopMotorSensor
   global stopGiraSensor
-  # global stopProxSensor
   global infrared_sensor
 
   infrared_sensor = InfraredSensor(INPUT_1)
@@ -211,15 +210,11 @@ def main():
   stopInfraredSensor=False
   stopMotorSensor=False
   stopGiraSensor=False
-  # stopProxSensor=False
 
-  # t1 = threading.Thread(target=robotDetectWorker)
-  # t1.start()
-  #
-  # t2 = threading.Thread(target=onlyWalkWithStopWorker)
-  # t2.start()
+  walkSeconds(0,50,3)
 
-  tp = threading.Thread(target=patrulha)
-  tp.start()
+  patrulha()
+  #tp = threading.Thread(target=patrulha)
+  #tp.start()
 
 main()
