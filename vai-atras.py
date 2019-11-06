@@ -99,17 +99,15 @@ def patrulha():
         dis = infrared_sensor.heading_and_distance(4)
         if dis[0] != None and dis[1] != None:
             if dis[0] < 0:
-                time = ((dis[0] * 1.5)/180.0) * (-1)
-                if dis[1] > 60:
-                    walkSeconds(-50, 100, time)
-                else:
-                    walkSeconds(-100, 100, time)
+                time = ((dis[0] * 2.2)/100.0) * (-1)
+                if time == 0:
+                    walkSeconds(-100, 100, 0.75)
+                walkSeconds(-100, 100, time)
             else:
-                time = (dis[0] * 1.5/180.0)
-                if dis[1] > 60:
-                    walkSeconds(50, 100, time)
-                else:
-                    walkSeconds(100, 100, time)
+                time = ((dis[0] * 2.2)/100.0)
+                if time == 0:
+                    walkSeconds(100, 100, 0.75)
+                walkSeconds(100, 100, time)
             dis = infrared_sensor.heading_and_distance(4)
             if dis[0] != None and dis[1] != None and dis[0] > -2 and dis[0] < 2 and dis[1] < 60:
                 oneShooter()
@@ -177,6 +175,8 @@ def main():
   #
   # t2 = threading.Thread(target=onlyWalkWithStopWorker)
   # t2.start()
+
+  walkSeconds(0,100,4)
 
   tp = threading.Thread(target=patrulha)
   tp.start()

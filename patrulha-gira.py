@@ -99,63 +99,17 @@ def patrulha():
         dis = infrared_sensor.heading_and_distance(4)
         if dis[0] != None and dis[1] != None:
             if dis[0] < 0:
-                time = dis[0]/100.0 * (-1)
+                time = (dis[0]*2.2)/100.0 * (-1)
                 walkSeconds(-100, 100, time + 0.1)
             else:
-                time = (dis[0]/100.0)
+                time = ((dis[0]* 2.2)/100.0)
                 walkSeconds(100, 100, time + 0.1)
             dis = infrared_sensor.heading_and_distance(4)
-            if dis[0] != None and dis[1] != None and dis[0] > -2 and dis[0] < 2 and dis[1] < 60:
+            if dis[0] != None and dis[1] != None and dis[0] > -2.3 and dis[0] < 2.3 and dis[1] < 60:
                 oneShooter()
         else:
               walkSeconds(100,50,1)
 
-def robotDetectWorker():
-    global stopInfraredSensor
-    global stopMotorSensor
-    global infrared_sensor
-
-
-    while True:
-      if(stopInfraredSensor):
-        break
-      infrared_sensor.mode = 'IR-SEEK'
-      dis = infrared_sensor.heading_and_distance(4) # CANAL
-
-      if(dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):
-          oneShooter()
-      else:
-        infrared_sensor.mode = 'IR-PROX'
-        distance = infrared_sensor.value()
-        if distance <= 30:
-          #t = threading.Thread(target=searchMode)
-          #t.start()
-          stopMotorSensor=True
-          time.sleep(0.5)
-          walkSeconds(-100, 50, 1)
-          time.sleep(0.6)
-          dis1 = infrared_sensor.value()
-          infrared_sensor.mode = 'IR-SEEK'
-          time.sleep(0.5)
-          dis = infrared_sensor.heading_and_distance(4) # CANAL
-          while (dis[1] is not None and dis[0] > -15 and dis[0] < 15 and dis[1] < 60):
-              oneShooter()
-              time.sleep(0.5)
-              dis = infrared_sensor.heading_and_distance(4) # CANAL
-          walkSeconds(100, 50, 2)
-          time.sleep(0.6)
-          infrared_sensor.mode = 'IR-PROX'
-          dis2 = infrared_sensor.value()
-          if (dis2 < dis1):
-            walkSeconds(-100, 50, 2)
-            time.sleep(0.6)
-          #stopMotorSensor=True
-          #time.sleep(0.5)
-          #turnRight()
-          #time.sleep(0.5)
-          stopMotorSensor=False
-          t2 = threading.Thread(target=onlyWalkWithStopWorker)
-          t2.start()
 
 def onlyWalkWorker():
   global stopInfraredSensor
@@ -218,6 +172,8 @@ def main():
   #
   # t2 = threading.Thread(target=onlyWalkWithStopWorker)
   # t2.start()
+
+  walkSeconds(0,100,4)
 
   tp = threading.Thread(target=patrulha)
   tp.start()
