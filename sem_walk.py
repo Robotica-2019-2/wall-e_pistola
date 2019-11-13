@@ -22,10 +22,7 @@ import time, logging, threading
 
 sleep_time = 0.3
 DEFAULT_SLEEP_TIMEOUT_IN_SEC = 0.05
-
-def sound(message):
-  sound = Sound()
-  sound.speak(message)
+CANAL = 3
 
 def oneShooter():
   tank_shooter = MediumMotor(OUTPUT_D)
@@ -96,7 +93,7 @@ def patrulha():
     infrared_sensor.mode = 'IR-SEEK'
 
     while True:
-        dis = infrared_sensor.heading_and_distance(4)
+        dis = infrared_sensor.heading_and_distance(CANAL)
         if dis[0] != None and dis[1] != None:
             if dis[0] < 0:
                 time = ((dis[0] * 2.2)/100.0) * (-1)
@@ -108,7 +105,7 @@ def patrulha():
                 if time == 0:
                     walkSeconds(100, 100, 0.75)
                 walkSeconds(100, 100, time)
-            dis = infrared_sensor.heading_and_distance(4)
+            dis = infrared_sensor.heading_and_distance(CANAL)
             if dis[0] != None and dis[1] != None and dis[0] > -2 and dis[0] < 2 and dis[1] < 60:
                 oneShooter()
         else:
@@ -176,9 +173,11 @@ def main():
   # t2 = threading.Thread(target=onlyWalkWithStopWorker)
   # t2.start()
 
-  walkSeconds(0,100,4)
+  walkSeconds(0,100,6)
 
-  tp = threading.Thread(target=patrulha)
-  tp.start()
+  # tp = threading.Thread(target=patrulha)
+  # tp.start()
+
+  patrulha()
 
 main()
